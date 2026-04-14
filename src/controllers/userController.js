@@ -104,7 +104,6 @@ const userController = {
   // Get all staff members (admin only) - NEW METHOD
   async getStaff(req, res) {
     try {
-      console.log('👥 Fetching staff members...');
       
       // Find users with role 'staff' or 'admin'
       const staff = await User.find({ 
@@ -113,7 +112,6 @@ const userController = {
       .select('-__v')
       .sort({ createdAt: -1 });
 
-      console.log(`✅ Found ${staff.length} staff members`);
 
       // You can add task counts here if you have a Task model
       const staffWithStats = await Promise.all(staff.map(async (member) => {
@@ -130,7 +128,6 @@ const userController = {
 
       res.json(staffWithStats);
     } catch (error) {
-      console.error('❌ Error fetching staff:', error);
       res.status(500).json({ error: error.message });
     }
   },

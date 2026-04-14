@@ -5,12 +5,6 @@ const { authenticate } = require('../middleware/auth');
 const { staffCheck } = require('../middleware/staff');
 const { orderLimiter } = require('../middleware/rateLimiter');
 
-// Debug middleware - helps trace issues
-router.use((req, res, next) => {
-  console.log('🟢 Order route accessed:', req.method, req.path);
-  next();
-});
-
 // All order routes require authentication
 router.use(authenticate);
 
@@ -19,10 +13,8 @@ router.post('/',
   orderLimiter,
   async (req, res, next) => {
     try {
-      console.log('📦 Processing order creation...');
       await orderController.createOrder(req, res);
     } catch (error) {
-      console.error('❌ Error in order route:', error);
       next(error);
     }
   }
@@ -110,7 +102,6 @@ router.post('/:id/cancel',
 
 // Error handling middleware
 router.use((err, req, res, next) => {
-  console.error('❌ Order route error:', err);
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
