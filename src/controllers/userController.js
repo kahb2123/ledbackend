@@ -71,7 +71,9 @@ const userController = {
         clerkId = clerkUser.id;
       } catch (clerkError) {
         // Return meaningful error if Clerk creation fails
-        const clerkMsg = clerkError?.errors?.[0]?.longMessage || clerkError?.message || 'Failed to create user account';
+        const clerkErrors = clerkError?.errors || [];
+        const clerkMsg = clerkErrors.map(e => e.longMessage || e.message).join('. ') || clerkError?.message || 'Failed to create user account';
+        console.error('Clerk createUser error:', clerkMsg);
         return res.status(400).json({ error: clerkMsg });
       }
 
