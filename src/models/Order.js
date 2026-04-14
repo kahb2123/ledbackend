@@ -104,15 +104,14 @@ orderSchema.pre('save', function(next) {
     
     // Format: LED-YYMMDD-HHMMSS-RANDOM (guaranteed unique)
     this.orderNumber = `LED${year}${month}${day}${hours}${minutes}${seconds}${random}`;
-    console.log('Generated order number:', this.orderNumber);
+    // Order number generated
   }
   next();
 });
 
-// Performance indexes
+// Performance indexes (orderNumber already indexed via unique: true)
 orderSchema.index({ customer: 1 });
 orderSchema.index({ status: 1 });
-orderSchema.index({ orderNumber: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ programDate: 1 });
 orderSchema.index({ status: 1, createdAt: -1 });

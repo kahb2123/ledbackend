@@ -90,10 +90,9 @@ const workingOrderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// Performance indexes
+// Performance indexes (orderNumber already indexed via unique: true)
 workingOrderSchema.index({ customer: 1 });
 workingOrderSchema.index({ status: 1 });
-workingOrderSchema.index({ orderNumber: 1 });
 workingOrderSchema.index({ createdAt: -1 });
 workingOrderSchema.index({ programDate: 1 });
 workingOrderSchema.index({ status: 1, createdAt: -1 });

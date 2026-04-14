@@ -9,7 +9,7 @@ const shouldSkip = (req) => {
   return isDevelopment || isTest || req.user?.role === 'admin';
 };
 
-// Create custom limiter factory - FIXED keyGenerator
+// Create custom limiter factory
 const createLimiter = (windowMs, max, message, options = {}) => {
   return rateLimit({
     windowMs,
@@ -17,18 +17,9 @@ const createLimiter = (windowMs, max, message, options = {}) => {
     message: { error: message },
     standardHeaders: true,
     legacyHeaders: false,
-    // FIXED: Use built-in key generator or a simpler approach
-    keyGenerator: (req) => {
-      // Use user ID if authenticated
-      if (req.user?.id) {
-        return req.user.id;
-      }
-      // For unauthenticated requests, use IP
-      return req.ip || req.connection.remoteAddress || 'unknown';
-    },
+    // Use default key generator (handles IPv6 properly)
     skip: shouldSkip,
     handler: (req, res) => {
-      console.warn(`Rate limit exceeded for ${req.user?.id || req.ip} on ${req.path}`);
       res.status(429).json({
         error: message,
         retryAfter: Math.ceil(windowMs / 1000 / 60) + ' minutes'
