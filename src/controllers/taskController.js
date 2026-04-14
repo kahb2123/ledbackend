@@ -7,9 +7,6 @@ const taskController = {
 // Create task for an order
 async createTask(req, res) {
   try {
-    console.log('📋 Creating task for order:', req.body.orderId);
-    console.log('Request body:', JSON.stringify(req.body, null, 2));
-    
     const { orderId, assignedTo, taskType, priority, schedule, notes } = req.body;
     
     // Validate required fields
@@ -55,12 +52,8 @@ async createTask(req, res) {
       }
     };
 
-    console.log('Creating task with data:', JSON.stringify(taskData, null, 2));
-
     const task = new Task(taskData);
     await task.save();
-    console.log('✅ Task created - ID:', task._id);
-    console.log('✅ Task number:', task.taskNumber);
 
     // Update order status
     if (!order.assignedStaff) {
@@ -90,11 +83,6 @@ async createTask(req, res) {
     });
 
   } catch (error) {
-    console.error('❌ Error creating task:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
     if (error.name === 'ValidationError') {
       const errors = {};
       for (let field in error.errors) {
@@ -133,8 +121,6 @@ async createTask(req, res) {
 
       const total = await Task.countDocuments(query);
 
-      console.log(`📊 Fetched ${tasks.length} tasks`);
-
       res.json({
         tasks,
         pagination: {
@@ -144,7 +130,7 @@ async createTask(req, res) {
         }
       });
     } catch (error) {
-      console.error('❌ Error fetching tasks:', error);
+      console.error('Error fetching tasks:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -152,17 +138,14 @@ async createTask(req, res) {
   // Get tasks for logged-in staff
   async getMyTasks(req, res) {
     try {
-      console.log('📋 Fetching tasks for staff:', req.userId);
-      
       const tasks = await Task.find({ assignedTo: req.userId })
         .populate('order', 'orderNumber ledType location programDate')
         .populate('assignedBy', 'firstName lastName')
         .sort({ createdAt: -1 });
 
-      console.log(`✅ Found ${tasks.length} tasks for staff`);
       res.json(tasks);
     } catch (error) {
-      console.error('❌ Error fetching my tasks:', error);
+      console.error('Error fetching my tasks:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -187,7 +170,7 @@ async createTask(req, res) {
 
       res.json(task);
     } catch (error) {
-      console.error('❌ Error fetching task:', error);
+      console.error('Error fetching task:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -218,7 +201,6 @@ async createTask(req, res) {
       }
 
       await task.save();
-      console.log(`✅ Task ${task.taskNumber} status updated to ${task.status}`);
 
       // Update order status if task is completed
       if (status === 'completed') {
@@ -226,13 +208,12 @@ async createTask(req, res) {
         if (order) {
           order.status = 'completed';
           await order.save();
-          console.log(`✅ Order ${order.orderNumber} marked as completed`);
         }
       }
 
       res.json(task);
     } catch (error) {
-      console.error('❌ Error updating task:', error);
+      console.error('Error updating task:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -264,15 +245,13 @@ async createTask(req, res) {
       task.completionPhotos.push(...photos);
       await task.save();
 
-      console.log(`✅ Uploaded ${photos.length} photos for task ${task.taskNumber}`);
-
       res.json({
         success: true,
         message: 'Photos uploaded successfully',
         photos: task.completionPhotos
       });
     } catch (error) {
-      console.error('❌ Error uploading photos:', error);
+      console.error('Error uploading photos:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -295,7 +274,7 @@ async createTask(req, res) {
 
       res.json(tasks);
     } catch (error) {
-      console.error('❌ Error fetching today\'s tasks:', error);
+      console.error('Error fetching today\'s tasks:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -318,7 +297,6 @@ async createTask(req, res) {
       });
 
       await task.save();
-      console.log(`✅ Issue reported for task ${task.taskNumber}`);
 
       res.json({
         success: true,
@@ -326,7 +304,7 @@ async createTask(req, res) {
         issues: task.issues
       });
     } catch (error) {
-      console.error('❌ Error reporting issue:', error);
+      console.error('Error reporting issue:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -351,7 +329,6 @@ async createTask(req, res) {
       issue.resolution = resolution;
 
       await task.save();
-      console.log(`✅ Issue resolved for task ${task.taskNumber}`);
 
       res.json({
         success: true,
@@ -359,7 +336,7 @@ async createTask(req, res) {
         issue
       });
     } catch (error) {
-      console.error('❌ Error resolving issue:', error);
+      console.error('Error resolving issue:', error.message);
       res.status(500).json({ error: error.message });
     }
   }

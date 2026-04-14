@@ -62,4 +62,11 @@ const userSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Performance indexes
+userSchema.index({ clerkId: 1 });
+userSchema.index({ email: 1 });
+userSchema.index({ role: 1 });
+userSchema.index({ isActive: 1 });
+userSchema.index({ role: 1, isActive: 1 });
+
 module.exports = mongoose.model('User', userSchema);

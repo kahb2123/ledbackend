@@ -68,4 +68,10 @@ const mediaSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Performance indexes
+mediaSchema.index({ category: 1, order: 1 });
+mediaSchema.index({ type: 1 });
+mediaSchema.index({ isPublic: 1 });
+mediaSchema.index({ uploadedBy: 1 });
+
 module.exports = mongoose.model('Media', mediaSchema);

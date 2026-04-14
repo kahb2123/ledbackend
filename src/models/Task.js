@@ -117,8 +117,12 @@ const taskSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// NO MIDDLEWARE HOOKS - Completely removed to avoid 'next is not a function' error
-
-console.log('✅ Task model loaded - NO MIDDLEWARE HOOKS');
+// Performance indexes
+taskSchema.index({ assignedTo: 1 });
+taskSchema.index({ order: 1 });
+taskSchema.index({ status: 1 });
+taskSchema.index({ 'schedule.startDate': 1 });
+taskSchema.index({ assignedTo: 1, status: 1 });
+taskSchema.index({ createdAt: -1 });
 
 module.exports = mongoose.model('Task', taskSchema);
