@@ -104,21 +104,18 @@ orderSchema.pre('save', function(next) {
     
     // Format: LED-YYMMDD-HHMMSS-RANDOM (guaranteed unique)
     this.orderNumber = `LED${year}${month}${day}${hours}${minutes}${seconds}${random}`;
-    console.log('Generated order number:', this.orderNumber);
+    // Order number generated
   }
   next();
 });
 
-// Add error handler for debugging (optional)
-orderSchema.post('save', function(error, doc, next) {
-  if (error) {
-    console.error('Error saving order:', error);
-    next(error);
-  } else {
-    next();
-  }
-});
-
-console.log('📦 Order model loaded with simple pre-save hook');
+// Performance indexes (orderNumber already indexed via unique: true)
+orderSchema.index({ customer: 1 });
+orderSchema.index({ status: 1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ programDate: 1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ customer: 1, status: 1 });
+orderSchema.index({ ledType: 1 });
 
 module.exports = mongoose.model('Order', orderSchema);

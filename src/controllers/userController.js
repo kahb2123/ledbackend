@@ -44,7 +44,12 @@ const userController = {
   // Create staff member (admin only)
   async createStaff(req, res) {
     try {
-      const { firstName, lastName, email, phone, role = 'staff' } = req.body;
+      const { firstName, lastName, email, phone, password, role = 'staff' } = req.body;
+
+      // Validate password
+      if (!password || password.length < 8) {
+        return res.status(400).json({ error: 'Password must be at least 8 characters long' });
+      }
 
       // Check if user already exists
       const existingUser = await User.findOne({ email });
@@ -52,24 +57,24 @@ const userController = {
         return res.status(400).json({ error: 'User with this email already exists' });
       }
 
-      // Create user in Clerk first (optional - you can also create without Clerk)
+      // Create user in Clerk with admin-set password
       let clerkId = null;
       try {
-        // Generate a temporary password (you might want to send an invitation email instead)
-        const tempPassword = Math.random().toString(36).slice(-8) + 'Aa1!';
-        
         const clerkUser = await clerk.users.createUser({
           emailAddress: [email],
-          password: tempPassword,
+          password,
           firstName,
           lastName,
-          skipPasswordChecks: true,
-          skipPasswordRequirement: true
+          skipPasswordChecks: false,
+          skipPasswordRequirement: false
         });
         clerkId = clerkUser.id;
       } catch (clerkError) {
-        console.error('Error creating user in Clerk:', clerkError);
-        // Continue with MongoDB user creation even if Clerk fails
+        // Return meaningful error if Clerk creation fails
+        const clerkErrors = clerkError?.errors || [];
+        const clerkMsg = clerkErrors.map(e => e.longMessage || e.message).join('. ') || clerkError?.message || 'Failed to create user account';
+        console.error('Clerk createUser error:', clerkMsg);
+        return res.status(400).json({ error: clerkMsg });
       }
 
       // Create user in MongoDB
@@ -84,7 +89,7 @@ const userController = {
       });
 
       res.status(201).json({
-        message: 'Staff created successfully',
+        message: 'Staff created successfully. They can now log in with their email and password.',
         user: {
           id: newUser._id,
           firstName: newUser.firstName,
@@ -96,16 +101,15 @@ const userController = {
       });
 
     } catch (error) {
-      console.error('Error creating staff:', error);
       res.status(500).json({ error: error.message });
     }
   },
 
-  // Get all staff members (admin only) - NEW METHOD
+  // Get all staff members (admin only)
   async getStaff(req, res) {
     try {
-      console.log('👥 Fetching staff members...');
-      
+      const Task = require('../models/Task');
+
       // Find users with role 'staff' or 'admin'
       const staff = await User.find({ 
         role: { $in: ['staff', 'admin'] } 
@@ -113,13 +117,12 @@ const userController = {
       .select('-__v')
       .sort({ createdAt: -1 });
 
-      console.log(`✅ Found ${staff.length} staff members`);
-
-      // You can add task counts here if you have a Task model
+      // Get real task counts for each staff member
       const staffWithStats = await Promise.all(staff.map(async (member) => {
-        // Placeholder for task counts - replace with actual counts when Task model is ready
-        const taskCount = 0;
-        const completedTasks = 0;
+        const [taskCount, completedTasks] = await Promise.all([
+          Task.countDocuments({ assignedTo: member._id }),
+          Task.countDocuments({ assignedTo: member._id, status: 'completed' })
+        ]);
         
         return {
           ...member.toObject(),
@@ -130,7 +133,6 @@ const userController = {
 
       res.json(staffWithStats);
     } catch (error) {
-      console.error('❌ Error fetching staff:', error);
       res.status(500).json({ error: error.message });
     }
   },

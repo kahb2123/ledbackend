@@ -90,7 +90,12 @@ const workingOrderSchema = new mongoose.Schema({
   timestamps: true
 });
 
-// NO PRE-SAVE HOOK - We'll generate order number in the route
-console.log('✅ WorkingOrder model loaded - NO PRE-SAVE HOOK');
+// Performance indexes (orderNumber already indexed via unique: true)
+workingOrderSchema.index({ customer: 1 });
+workingOrderSchema.index({ status: 1 });
+workingOrderSchema.index({ createdAt: -1 });
+workingOrderSchema.index({ programDate: 1 });
+workingOrderSchema.index({ status: 1, createdAt: -1 });
+workingOrderSchema.index({ customer: 1, status: 1 });
 
 module.exports = mongoose.model('WorkingOrder', workingOrderSchema);

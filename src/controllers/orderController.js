@@ -9,10 +9,6 @@ const orderController = {
   // Create new order
   async createOrder(req, res) {
     try {
-      console.log('📝 Creating order...');
-      console.log('User ID:', req.userId);
-      console.log('Order data:', req.body);
-
       const orderData = req.body;
       
       // Get service price
@@ -46,7 +42,6 @@ const orderController = {
       });
 
       await order.save();
-      console.log('✅ Order saved:', order._id);
 
       // Send confirmation email (optional - may fail in development)
       try {
@@ -54,12 +49,12 @@ const orderController = {
           await sendOrderConfirmation(req.user.email, order);
         }
       } catch (emailError) {
-        console.log('Email sending failed:', emailError.message);
+        // Email sending is non-critical
       }
 
       res.status(201).json(order);
     } catch (error) {
-      console.error('❌ Error creating order:', error);
+      console.error('Error creating order:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -102,7 +97,7 @@ const orderController = {
         }
       });
     } catch (error) {
-      console.error('❌ Error getting orders:', error);
+      console.error('Error getting orders:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -126,7 +121,7 @@ const orderController = {
 
       res.json(order);
     } catch (error) {
-      console.error('❌ Error getting order:', error);
+      console.error('Error getting order:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -143,7 +138,7 @@ const orderController = {
 
       res.json(order);
     } catch (error) {
-      console.error('❌ Error getting order by number:', error);
+      console.error('Error getting order by number:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -173,13 +168,13 @@ const orderController = {
         try {
           await sendOrderStatusUpdate(customer.email, order);
         } catch (emailError) {
-          console.log('Email sending failed:', emailError.message);
+          // Email sending is non-critical
         }
       }
 
       res.json(order);
     } catch (error) {
-      console.error('❌ Error updating order status:', error);
+      console.error('Error updating order status:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -235,7 +230,7 @@ const orderController = {
       await order.save();
       res.json(order);
     } catch (error) {
-      console.error('❌ Error assigning staff:', error);
+      console.error('Error assigning staff:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -261,7 +256,7 @@ const orderController = {
 
       res.json({ message: 'Order cancelled successfully', order });
     } catch (error) {
-      console.error('❌ Error cancelling order:', error);
+      console.error('Error cancelling order:', error.message);
       res.status(500).json({ error: error.message });
     }
   },
@@ -275,7 +270,7 @@ const orderController = {
 
       res.json(orders);
     } catch (error) {
-      console.error('❌ Error getting customer orders:', error);
+      console.error('Error getting customer orders:', error.message);
       res.status(500).json({ error: error.message });
     }
   }

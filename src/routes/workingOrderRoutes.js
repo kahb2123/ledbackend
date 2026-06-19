@@ -27,16 +27,11 @@ router.use(authenticate);
 // Create new order (customers only)
 router.post('/', async (req, res) => {
   try {
-    console.log('✅ CREATING ORDER');
-    console.log('User ID:', req.userId);
-    console.log('Body:', req.body);
-
     // Validate required fields
     const requiredFields = ['ledType', 'ledCategory', 'squareMeters', 'programType', 'programDate', 'duration', 'location'];
     const missingFields = requiredFields.filter(field => !req.body[field]);
     
     if (missingFields.length > 0) {
-      console.log('❌ Missing fields:', missingFields);
       return res.status(400).json({ 
         error: 'Missing required fields', 
         missingFields 
@@ -64,7 +59,6 @@ router.post('/', async (req, res) => {
     );
 
     const orderNumber = generateOrderNumber();
-    console.log('Generated order number:', orderNumber);
 
     const order = new WorkingOrder({
       ...req.body,
@@ -80,7 +74,6 @@ router.post('/', async (req, res) => {
     });
 
     await order.save();
-    console.log('✅ Order saved:', order._id, 'Number:', order.orderNumber);
 
     res.status(201).json({
       success: true,
@@ -94,11 +87,6 @@ router.post('/', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('❌ Error creating order:', error);
-    console.error('Error name:', error.name);
-    console.error('Error message:', error.message);
-    console.error('Error stack:', error.stack);
-    
     // Send appropriate error message
     if (error.name === 'ValidationError') {
       return res.status(400).json({ 
@@ -121,16 +109,14 @@ router.post('/', async (req, res) => {
 // Get customer's own orders
 router.get('/my-orders', async (req, res) => {
   try {
-    console.log('📋 Fetching orders for customer:', req.userId);
-    
     const orders = await WorkingOrder.find({ customer: req.userId })
       .populate('customer', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    console.log(`Found ${orders.length} orders`);
     res.json(orders);
   } catch (error) {
-    console.error('❌ Error fetching customer orders:', error);
+    console.error('Error fetching customer orders:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -152,7 +138,7 @@ router.get('/:id', async (req, res) => {
     
     res.json(order);
   } catch (error) {
-    console.error('❌ Error fetching order:', error);
+    console.error('Error fetching order:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -180,11 +166,10 @@ router.post('/:id/cancel', async (req, res) => {
     });
 
     await order.save();
-    console.log(`✅ Order ${order.orderNumber} cancelled by customer`);
 
     res.json({ message: 'Order cancelled successfully', order });
   } catch (error) {
-    console.error('❌ Error cancelling order:', error);
+    console.error('Error cancelling order:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -210,8 +195,6 @@ router.get('/', staffCheck, async (req, res) => {
 
     const total = await WorkingOrder.countDocuments(query);
 
-    console.log(`Admin fetched ${orders.length} total orders`);
-
     res.json({
       orders,
       pagination: {
@@ -221,7 +204,7 @@ router.get('/', staffCheck, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('❌ Error fetching all orders:', error);
+    console.error('Error fetching all orders:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -238,7 +221,7 @@ router.get('/admin/:id', staffCheck, async (req, res) => {
     
     res.json(order);
   } catch (error) {
-    console.error('❌ Error fetching order:', error);
+    console.error('Error fetching order:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -261,11 +244,10 @@ router.put('/:id/status', staffCheck, async (req, res) => {
     });
 
     await order.save();
-    console.log(`✅ Order ${order.orderNumber} status updated to ${status} by admin`);
 
     res.json(order);
   } catch (error) {
-    console.error('❌ Error updating order status:', error);
+    console.error('Error updating order status:', error.message);
     res.status(500).json({ error: error.message });
   }
 });
@@ -288,11 +270,10 @@ router.post('/admin/:id/cancel', staffCheck, async (req, res) => {
     });
 
     await order.save();
-    console.log(`✅ Order ${order.orderNumber} cancelled by admin`);
 
     res.json({ message: 'Order cancelled successfully', order });
   } catch (error) {
-    console.error('❌ Error cancelling order:', error);
+    console.error('Error cancelling order:', error.message);
     res.status(500).json({ error: error.message });
   }
 });

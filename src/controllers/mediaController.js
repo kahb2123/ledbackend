@@ -148,9 +148,6 @@ const mediaController = {
   // Upload video
   async uploadVideo(req, res) {
     try {
-      console.log('📹 Video upload request received');
-      console.log('File:', req.file);
-      console.log('Body:', req.body);
 
       if (!req.file) {
         return res.status(400).json({ error: 'No video uploaded' });
@@ -218,11 +215,10 @@ const mediaController = {
       });
 
       await media.save();
-      console.log('✅ Video saved to database:', media._id);
       
       res.status(201).json(media);
     } catch (error) {
-      console.error('❌ Video upload error:', error);
+      // Video upload error handled below
       
       if (error.name === 'ValidationError') {
         const messages = Object.values(error.errors).map(val => val.message);

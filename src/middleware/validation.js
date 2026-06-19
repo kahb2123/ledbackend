@@ -2,7 +2,6 @@ const { body, validationResult } = require('express-validator');
 
 // Simple validation middleware that doesn't use express-validator arrays
 const validateOrder = (req, res, next) => {
-  console.log('🔍 Validating order...');
   const errors = [];
 
   // Check required fields
@@ -25,11 +24,9 @@ const validateOrder = (req, res, next) => {
   }
 
   if (errors.length > 0) {
-    console.log('❌ Validation errors:', errors);
     return res.status(400).json({ errors });
   }
 
-  console.log('✅ Validation passed');
   next();
 };
 
